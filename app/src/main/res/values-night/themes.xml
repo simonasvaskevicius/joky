@@ -1,0 +1,24 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Joky" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/primaryDarkNight</item>
+        <item name="android:windowBackground">@color/primaryNight</item>
+
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primaryNight</item>
+        <item name="colorPrimaryVariant">@color/primaryLightNight</item>
+        <item name="colorOnPrimary">@color/primaryDarkNight</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/secondaryNight</item>
+        <item name="colorSecondaryVariant">@color/secondaryLightNight</item>
+        <item name="colorOnSecondary">@color/secondaryDarkNight</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style
+        name="dialog">
+        <item
+            name="android:background">@color/primaryNight</item>
+    </style>
+
+</resources>
