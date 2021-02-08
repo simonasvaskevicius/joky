@@ -10,6 +10,9 @@
     <string name="skip">Skip</string>
 
 
+    <string name="default_notification_channel_id" translatable="false">joky_default_channel</string>
+
+
     <string name="onboarding_slide1_title">Have a Joky and Smile</string>
     <string name="onboarding_slide1_subtitle">Getting started with Joky</string>
     <string name="onboarding_slide1_desc"></string>
