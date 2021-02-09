@@ -4,8 +4,13 @@ plugins {
     id 'kotlin-android-extensions'
     id 'kotlin-kapt'
 }
+apply plugin: 'com.google.firebase.crashlytics'
+
+
+loadExtraProperties "${rootDir}/signing.properties"
 
 android {
+    def version = new Version("${rootDir}/version.properties")
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
@@ -13,21 +18,50 @@ android {
         applicationId "com.vaskevicius.android.joky"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode version.getVersionCode()
+        versionName version.getVersion()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+
+        //comment out this whole 'signingConfigs' to bypass signing errors
+
+        release project.hasProperty('RELEASE_STORE_FILE') ? {
+            storeFile rootProject.file("${rootDir}/${RELEASE_STORE_FILE}")
+            storePassword RELEASE_STORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_PASSWORD
+        } : {}
+
+        debug project.hasProperty('DEBUG_STORE_FILE') ? {
+            storeFile rootProject.file("${rootDir}/${DEBUG_STORE_FILE}")
+            storePassword DEBUG_STORE_PASSWORD
+            keyAlias DEBUG_KEY_ALIAS
+            keyPassword DEBUG_KEY_PASSWORD
+        } : {}
+    }
+
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
+            signingConfig signingConfigs.debug
+            buildConfigField "String", "BASE_URL", "\"https://v2.jokeapi.dev/joke/\""
+            buildConfigField "String", "PREF_NAME", "\"joky_preferences\""
             debuggable true
         }
+
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "BASE_URL", "\"https://v2.jokeapi.dev/joke/\""
+            buildConfigField "String", "PREF_NAME", "\"joky_preferences\""
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -38,6 +72,15 @@ android {
 }
 
 dependencies {
+    //firebase
+    implementation platform('com.google.firebase:firebase-bom:26.4.0')
+    //crashlytics
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    //cloud messaging
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+    implementation 'com.google.firebase:firebase-installations-ktx:16.3.4'
+
 
     // Added Dependencies
     implementation 'android.arch.lifecycle:extensions:1.1.1'
@@ -55,4 +98,66 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+}
+
+def loadExtraProperties(String fileName) {
+    if (new File(fileName).exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(fileName))
+
+        props.each { key, val -> project.ext.set(key, val)
+        }
+    }
+}
+apply plugin: 'com.google.gms.google-services'
+
+class Version {
+
+    private String fileName
+    private File versionFile
+    private Properties properties
+    private int major
+    private int minor
+    private int patch
+    private int number
+    private String suffix
+    private boolean nightly
+
+    Version(String fileName) {
+        this.fileName = fileName
+        load()
+    }
+
+    def load() {
+        versionFile = new File(fileName)
+        if (versionFile.canRead()) {
+            properties = new Properties()
+            properties.load(new FileInputStream(versionFile))
+
+            major = properties['MAJOR'].toInteger()
+            minor = properties['MINOR'].toInteger()
+            patch = properties['PATCH'].toInteger()
+            number = properties['BUILD'].toInteger()
+            suffix = properties['SUFFIX'].toString()
+            nightly = Boolean.parseBoolean(properties['NIGHTLY'].toString())
+        } else {
+            throw new GradleException("Could not read version file")
+        }
+    }
+
+    String getVersion() {
+        return "${major}.${minor}" + (patch != 0 ? ".${patch}" : "")
+    }
+
+    String getBuild() {
+        return number.toString()
+    }
+
+    String getSuffix() {
+        if (nightly) return "-${suffix}" else return "-${suffix}${number}"
+    }
+
+    int getVersionCode() {
+        major * 1000000 + minor * 10000 + patch * 100 + number
+    }
 }

@@ -14,3 +14,7 @@
     <br />
     <br />
   </p>
+  </br>
+  </br>
+  <a href="https://play.google.com/store/apps/details?id=com.vaskevicius.android.joky"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" align="left" height="62" width="161" ></a>
+  
